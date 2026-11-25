@@ -85,7 +85,7 @@ Left out, and why:
 - v2 renamed `FastMCP` to `MCPServer` (`from mcp.server import MCPServer`). Input schemas still come from type hints.[6] Pinning matters here: v1 code breaks on its first import under v2.[6]
 - v2 speaks the 2026-07-28 protocol revision.[6]
 - Transport for slice 1 is stdio. Logs must go to stderr, because stdout carries the protocol.
-- Streamable HTTP is slice 2 (`--transport streamable-http`, endpoint `/mcp`).[5]
+- Streamable HTTP is built in 0.2.0 (`--transport http`, endpoint `/mcp`; see `OBO.md`).[5]
 - Tests drive the server in memory: v2's `Client` accepts the server object directly, with no transport.[6]
 
 ## 3. API integration
@@ -107,11 +107,13 @@ Left out, and why:
   - Tool results go on to whichever LLM provider Hermes uses. That, not this server, is where data residency matters.
   - A private aircraft's `icao24` can identify its owner. OpenSky's terms ask users to respect that privacy,[2] which is why the server offers no owner lookup.
 
-## 5. Agentic concepts: M2M now, OBO as design reasoning (not implemented)
+## 5. Agentic concepts: M2M for public data, OBO for the user's own data (built in 0.2.0)
 
-This server is **machine-to-machine**. It calls OpenSky as itself, using client credentials, and every user of the server shares that one identity and one credit budget. Over stdio, the MCP spec says to take credentials from the environment and not to use its HTTP authorization flow.[8]
+> Built in `0.2.0` from `OBO.md`: over Streamable HTTP the server is an OAuth resource server (Protected Resource Metadata, JWT checks, per-tool scopes), and the `my_saved_airports` / `my_recent_flights` tools use token exchange (RFC 8693) for a local logbook API. See the README for running it and `make demo-obo`. One decision differs from point 3 below: `tools/list` is not filtered by scope; the call fails with 403 `insufficient_scope` instead (reasons in `OBO.md` §2). The text below is the original reasoning; points 1 to 3 now exist in code, point 4 in part (per-user cache, pseudonymous logs; the GDPR work is out of scope for a localhost demo).
 
-*Design reasoning only:* suppose a tool acted for a signed-in user, for example a crew member's roster or an airline's own flight plans. Then four things change:
+The five public tools are **machine-to-machine**. They call OpenSky as the server itself, using client credentials, and every user of the server shares that one identity and one credit budget. Over stdio, the MCP spec says to take credentials from the environment and not to use its HTTP authorization flow.[8]
+
+*Original design reasoning:* suppose a tool acted for a signed-in user, for example a crew member's roster or an airline's own flight plans. Then four things change:
 1. **Inbound auth.** Over Streamable HTTP, the MCP server becomes an OAuth 2.1 resource server. It publishes Protected Resource Metadata (RFC 9728), and clients find the authorization server through it, using PKCE and the `resource` parameter (RFC 8707).[8][9] The server must accept only tokens whose audience is the server itself.[9]
 2. **No passthrough, use exchange.** The server "MUST NOT pass through the token it received from the MCP client". Upstream calls use a separate token.[9] The standard way to get one is OAuth 2.0 Token Exchange (RFC 8693): the server sends the user's token as `subject_token` and receives a token for the upstream API with a narrower scope. That is the on-behalf-of pattern.[10] Microsoft Entra's "OBO flow" is a vendor version of the same idea.[unverified]
 3. **Per-user scopes.** `tools/list` may differ by the authorization presented, so a user without `flights:read` never sees that tool.[7] A missing scope at call time returns 403 `insufficient_scope` with the required scope in `WWW-Authenticate`, and the client can then ask the user for more access (step-up).[8] Client-credentials clients may step up or simply abort.[8]
@@ -122,9 +124,9 @@ This server is **machine-to-machine**. It calls OpenSky as itself, using client 
 - **Versioning.** SemVer, with a `CHANGELOG.md` in Keep a Changelog format. Tool names and schemas are the public API for models, so renaming a tool or tightening a parameter counts as a breaking change. `server_info.version` comes from the package version.
 - **Tests (offline).** pytest with `pytest-socket` blocks the network. respx replays fixtures: AWC fixtures are recorded real responses (public, no auth), and OpenSky fixtures are synthetic but follow the documented schema, with fake `icao24` values (see §0). Cases: token manager on a fake clock (refresh margin, one refresh under concurrency, 401 then one retry), 429 with short and long Retry-After, 204 giving `missing`, truncation, validation errors giving `isError`, the log-leak test, and all five tools through the in-memory `Client`.[6]
 - **Tool-selection eval.** The ten prompts in `PLAN.md` become `evals/tool_selection.yaml` in slice 1, and are later run against a live model.
-- **Container (slice 2).** Multi-stage `python:3.12-slim` build with `uv sync --frozen`. The process runs as a non-root user on a read-only root filesystem. `docker run -i` works for stdio. HTTP binds 127.0.0.1:8000 `/mcp`, with a `/healthz` route that checks liveness and never calls upstream. Docker `HEALTHCHECK` hits that route.
-- **Logs and metrics.** Structured logs carry `tool`, `latency_ms`, `upstream_status`, `cache_hit` and `credits_remaining`. The SDK's built-in OpenTelemetry middleware gives each request a span, at no cost until an exporter is configured.[6]
-- **CI.** `.github/workflows/ci.yml` runs ruff, pyright, the offline pytest suite and `docker build`. The same steps exist locally as `make ci`. There is no remote, so locally is where CI runs for now.
+- **Container (slice 3, not built).** Multi-stage `python:3.12-slim` build with `uv sync --frozen`. The process runs as a non-root user on a read-only root filesystem. `docker run -i` works for stdio. HTTP binds 127.0.0.1:8000 `/mcp`, with a `/healthz` route that checks liveness and never calls upstream. Docker `HEALTHCHECK` hits that route.
+- **Logs and metrics.** Structured logs carry `tool`, `latency_ms`, `upstream_status`, `cache_hit` and `credits_remaining`. Planned, not implemented: OpenTelemetry spans from the SDK's middleware, "at no cost until an exporter is configured";[6] nothing is configured or verified (DECISIONS.md #11).
+- **CI (planned, not implemented).** A `.github/workflows/ci.yml` running ruff, pyright, the offline pytest suite and `docker build`, mirrored locally as `make ci`. Neither exists: CI and the Dockerfile moved to slice 3, and pyright is not in the local checks. Today the local checks are `make test`, `make lint` and `make smoke` (see README).
 
 ## Sources
 

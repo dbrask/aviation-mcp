@@ -1,6 +1,6 @@
 [project]
 name = "aviation-mcp"
-version = "0.1.0"
+version = "0.2.0"
 description = "Read-only MCP server: airport weather (aviationweather.gov) and flight data (OpenSky Network)."
 readme = "README.md"
 requires-python = ">=3.12"
@@ -9,6 +9,7 @@ dependencies = [
     "mcp==2.3.0",
     "httpx>=0.27",
     "pydantic>=2.7",
+    "pyjwt[crypto]>=2.10",
 ]
 
 [project.scripts]

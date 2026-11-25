@@ -1,4 +1,4 @@
-"""OpenSky API client credentials.
+"""Client credentials: OpenSky (both transports) and the token-exchange client (HTTP).
 
 Read from OPENSKY_CLIENT_ID / OPENSKY_CLIENT_SECRET in the environment, or else from a
 KEY=VALUE credentials file (default ~/.config/aviation-mcp/opensky.env). The file is
@@ -20,6 +20,12 @@ from aviation_mcp.logs import register_secret
 DEFAULT_CREDENTIALS_FILE = Path("~/.config/aviation-mcp/opensky.env").expanduser()
 ID_KEY = "OPENSKY_CLIENT_ID"
 SECRET_KEY = "OPENSKY_CLIENT_SECRET"
+
+# The confidential OAuth client aviation-mcp uses for token exchange (HTTP mode only).
+DEFAULT_CLIENT_CREDENTIALS_FILE = Path("~/.config/aviation-mcp/oauth-client.env").expanduser()
+EXCHANGE_ID_KEY = "AVIATION_MCP_CLIENT_ID"
+EXCHANGE_SECRET_KEY = "AVIATION_MCP_CLIENT_SECRET"
+DEFAULT_EXCHANGE_CLIENT_ID = "aviation-mcp"
 
 
 class CredentialsError(Exception):
@@ -72,5 +78,26 @@ def load_opensky_credentials(
         return None
     if missing:
         raise CredentialsError(f"OpenSky credentials are incomplete: {missing[0]} is not set")
+    register_secret(secret)
+    return OpenSkyCredentials(client_id=client_id, client_secret=SecretStr(secret))
+
+
+def load_exchange_credentials(
+    env: Mapping[str, str] | None = None, path: Path | None = None
+) -> OpenSkyCredentials | None:
+    """The token-exchange client's id and secret, or None when no secret is configured.
+    Same rules as OpenSky: environment first, else a KEY=VALUE file with mode 0600. The id
+    defaults to `aviation-mcp`."""
+    env = os.environ if env is None else env
+    path = DEFAULT_CLIENT_CREDENTIALS_FILE if path is None else Path(path).expanduser()
+    source: Mapping[str, str] = env
+    if not env.get(EXCHANGE_SECRET_KEY):
+        if not path.exists():
+            return None
+        source = _parse_env_file(path)
+    secret = source.get(EXCHANGE_SECRET_KEY, "").strip()
+    if not secret:
+        return None
+    client_id = source.get(EXCHANGE_ID_KEY, "").strip() or DEFAULT_EXCHANGE_CLIENT_ID
     register_secret(secret)
     return OpenSkyCredentials(client_id=client_id, client_secret=SecretStr(secret))

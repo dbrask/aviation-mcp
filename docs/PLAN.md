@@ -35,9 +35,13 @@ A voice assistant on that profile can then answer "what's the weather at Arlanda
 
 ## Slice plan
 
-- **Slice 1** (about one evening, 3–4 h): package skeleton, stdio `MCPServer`, the five tools, AWC and OpenSky clients, TokenManager, caching, redacting logger, offline test suite with fixtures, the eval YAML, README and CHANGELOG `0.1.0`. Done means `make test` is green with the network blocked, and Hermes lists the tools.
-- **Slice 2** (optional, 2–3 h): Streamable HTTP plus `/healthz`, Dockerfile, CI workflow, `0.2.0`.
-- **Not planned:** inbound OAuth and OBO (§5 stays design reasoning) and any hosted deployment.
+- **Slice 1** (about one evening, 3–4 h): package skeleton, stdio `MCPServer`, the five tools, AWC and OpenSky clients, TokenManager, caching, redacting logger, offline test suite with fixtures, the eval YAML, README and CHANGELOG `0.1.0`. Done means `make test` is green with the network blocked, and Hermes lists the tools. **Done:** `0.1.0`, reviewed by a model from another vendor (see `DECISIONS.md`).
+- **Slice 2** (about 13 h, design in `OBO.md`, target `0.2.0`): Streamable HTTP next to stdio, inbound OAuth (the server as a resource server: Protected Resource Metadata, JWT checks, scopes per tool) and one working on-behalf-of path: the new `my_saved_airports` and `my_recent_flights` tools exchange the caller's token (RFC 8693) for a token for a local logbook API. Keycloak 26.8.2 in Docker Compose is the demo identity provider. It is built as two cards:
+  - **2a** (about 8 h, offline): HTTP transport, `/healthz`, token verifier, per-tool scope gate, token exchange client and per-user cache, the two tools, logging, and offline tests. Done means `make test` is green with the network blocked, and stdio still lists exactly five tools.
+  - **2b** (about 5 h, after 2a): realm import, compose file, logbook API, `make demo-obo`, and the README, CHANGELOG and DECISIONS updates. Done means all seven checks in `make demo-obo` pass on a fresh container.
+  - **Done:** `0.2.0`, built in one card (2a and 2b together); `make demo-obo` passes 8/8 checks (the seven above plus a log scan). Cross-vendor review pending.
+- **Slice 3** (optional, 2–3 h): Dockerfile, CI workflow (the old slice 2 minus HTTP).
+- **Not planned:** any hosted deployment, TLS, dynamic client registration, consent UI, refresh tokens, revocation, delegation (`act`), and provider-specific setups other than Keycloak.
 
 ## Sources
 

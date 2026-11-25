@@ -88,3 +88,45 @@ def test_root_has_only_the_redacting_handler(captured):
     assert isinstance(ours[0].formatter, JsonFormatter)
     # httpx's own INFO line prints the full URL; we log requests ourselves instead.
     assert logging.getLogger("httpx").getEffectiveLevel() >= logging.WARNING
+
+
+# --- slice 2: token exchange and per-user pseudonyms -------------------------------------
+
+JWT = "eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJ4In0.c2lnbmF0dXJlLXBhcnQ"
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        f"grant_type=urn:ietf:params:oauth:grant-type:token-exchange&subject_token={JWT}&x=1",
+        f'{{"subject_token": "{JWT}"}}',
+        f"a three-part JWT on its own: {JWT} in a message",
+        f"error detail ({JWT})",
+    ],
+)
+def test_redact_masks_subject_token_and_bare_jwts(text):
+    out = redact(text)
+    assert JWT not in out
+    assert "c2lnbmF0dXJlLXBhcnQ" not in out
+    assert REDACTED in out
+
+
+def test_subject_pseudonym_is_stable_and_not_the_subject():
+    from aviation_mcp.logs import subject_pseudonym
+
+    iss = "http://localhost:8180/realms/aviation-demo"
+    sub = "0b7f6a1e-0000-4000-8000-00000000000a"
+    p = subject_pseudonym(iss, sub)
+    assert p == subject_pseudonym(iss, sub)
+    assert p.startswith("p_") and len(p) == 14
+    assert sub not in p and sub[:8] not in p
+    assert p != subject_pseudonym(iss, "0b7f6a1e-0000-4000-8000-00000000000b")
+    assert p != subject_pseudonym("http://other", sub)
+
+
+def test_subject_pseudonym_key_is_per_process(monkeypatch):
+    from aviation_mcp import logs
+
+    before = logs.subject_pseudonym("i", "s")
+    monkeypatch.setattr(logs, "_PSEUDONYM_KEY", b"another-process-key-0000000000000")
+    assert logs.subject_pseudonym("i", "s") != before

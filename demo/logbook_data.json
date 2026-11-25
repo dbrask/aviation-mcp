@@ -1,0 +1,24 @@
+{
+  "_note": "Synthetic demo data for make demo-obo. Keyed by the fixed demo user ids in keycloak/aviation-demo-realm.json. No real pilots or flights.",
+  "users": {
+    "0b7f6a1e-0000-4000-8000-00000000000a": {
+      "airports": [
+        {"icao": "ESSA", "label": "home base"},
+        {"icao": "ESGG", "label": "favourite"}
+      ],
+      "flights": [
+        {"date_utc": "2026-11-20", "from_airport": "ESSA", "to_airport": "ESGG", "aircraft_type": "C172", "block_minutes": 75, "landings": 1},
+        {"date_utc": "2026-11-18", "from_airport": "ESGG", "to_airport": "ESSA", "aircraft_type": "C172", "block_minutes": 80, "landings": 1},
+        {"date_utc": "2026-11-09", "from_airport": "ESSA", "to_airport": "ESSA", "aircraft_type": "PA28", "block_minutes": 45, "landings": 5}
+      ]
+    },
+    "0b7f6a1e-0000-4000-8000-00000000000b": {
+      "airports": [
+        {"icao": "EKCH", "label": "home base"}
+      ],
+      "flights": [
+        {"date_utc": "2026-11-21", "from_airport": "EKCH", "to_airport": "EKRN", "aircraft_type": "DA40", "block_minutes": 50, "landings": 1}
+      ]
+    }
+  }
+}

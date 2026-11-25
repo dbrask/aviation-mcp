@@ -173,3 +173,31 @@ async def test_unconfigured_server_still_lists_all_five_tools(unconfigured_serve
         "get_metar",
         "get_taf",
     ]
+
+
+# --- rejected values are not echoed (slice 2 review R4) -----------------------------------
+
+LONG_VALUE = "eyJhbGciOiJSUzI1NiJ9.DEMO-ONLY-pasted-text-that-must-not-come-back.c2ln"
+
+
+def test_every_tool_hides_rejected_input_in_validation_errors(server):
+    for tool in server._tool_manager.list_tools():
+        assert tool.fn_metadata.arg_model.model_config.get("hide_input_in_errors"), tool.name
+
+
+@pytest.mark.parametrize(
+    "tool,args",
+    [
+        ("get_metar", {"stations": [LONG_VALUE]}),
+        ("get_metar", {"stations": ["ESSA"], "hours_back": LONG_VALUE}),
+        ("get_taf", {"stations": [LONG_VALUE]}),
+        ("aircraft_near_airport", {"airport": LONG_VALUE}),
+        ("get_aircraft", {"icao24": [LONG_VALUE]}),
+        ("airport_flights", {"airport": "ESSA", "direction": "arrivals", "date_utc": LONG_VALUE}),
+        ("airport_flights", {"airport": "ESSA", "direction": LONG_VALUE}),
+    ],
+)
+async def test_long_rejected_values_are_not_echoed(server, tool, args):
+    text = await assert_error(server, tool, args)
+    assert "input_value" not in text
+    assert "DEMO-ONLY-pasted" not in text and "eyJhbGci" not in text

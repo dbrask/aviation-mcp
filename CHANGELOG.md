@@ -7,6 +7,47 @@ API: renaming a tool or tightening a parameter is a breaking change.
 
 ## [Unreleased]
 
+### Changed
+- `my_saved_airports` returns at most 50 airports and adds `count_total` and `truncated`
+  next to `returned` (output schema change). No paging and no new argument.
+- A 200 from the logbook API whose `airports`/`flights` field is missing or not a list is
+  a tool error ("unexpected format … not an empty result"), no longer an empty result.
+
+### Fixed
+- The per-tool 403 `insufficient_scope` now also answers a `tools/call` whose `Mcp-Name`
+  header is sent in the SDK's `=?base64?…?=` form; before, such a call got a tool error
+  (still refused) instead of the step-up challenge.
+- Argument validation errors no longer repeat the rejected value unless it is short and
+  plain, and pydantic's `input_value` is hidden for every tool, so a token pasted into an
+  argument is not echoed into the model-visible error.
+- `make demo-obo` sends `resource` on the token request as well as the authorization
+  request. The README and OBO.md state what the scripted sign-in does not do (discovery,
+  S256 capability check, `state`/`iss` validation). DESIGN.md marks CI, `make ci` and
+  OpenTelemetry as planned, not implemented.
+
+## [0.2.0] - 2026-11-25
+
+### Added
+- Streamable HTTP transport (`--transport http`, 127.0.0.1 only, stateless, JSON
+  responses) next to stdio, with `GET /healthz`. stdio is unchanged and stays the default.
+- OAuth resource server over HTTP: Protected Resource Metadata, a JWT verifier (RS256,
+  JWKS by `kid`, `iss`, `aud` must contain the resource URI, `exp`/`nbf` with 10 s leeway,
+  `sub`), `mcp:tools` required for every call, and a per-tool 403 `insufficient_scope`
+  naming `mcp:tools mcp:logbook` for the logbook tools. `--issuer` and `--resource-url`
+  are required; the issuer is checked against OIDC discovery at start-up.
+- Two HTTP-only tools for the signed-in pilot's own data, `my_saved_airports` and
+  `my_recent_flights`. They exchange the caller's token (RFC 8693) for a token with
+  `aud=logbook-api`, `scope=logbook:read`, never forward the caller's token, cache the
+  exchanged token per user (keyed by issuer, subject, audience and scope; memory only,
+  LRU 1,024) and re-exchange once on a downstream 401.
+- `make demo-obo`: Keycloak 26.8.2 (digest-pinned) in Docker Compose with a demo realm,
+  a demo logbook API, PKCE sign-in of two demo users and eight PASS/FAIL checks. All users
+  and secrets are throwaway `DEMO-ONLY-` values. The stack is always torn down.
+- Logs name users only by a per-process HMAC pseudonym; redaction also masks
+  `subject_token` and any three-part JWT. A leak test runs the full on-behalf-of flow at
+  DEBUG with redaction off.
+- `pyjwt[crypto]` is a direct dependency.
+
 ### Fixed
 - aviationweather.gov requests are paced at one per second with no burst (retries
   included); the old bucket allowed 110 requests in 50 s.

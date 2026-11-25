@@ -12,12 +12,15 @@
    any always-on assistant. The Lufthansa Open API is the fallback if that changes.
 4. **Always-on assistants** get the weather tools only (`get_metar`, `get_taf`). The README's
    Hermes snippet shows this with `tools.include`.
-5. **Slice 2 (HTTP, Docker, CI):** not built yet.
+5. **Slice 2 (HTTP, inbound OAuth, token exchange):** built in `0.2.0` from `OBO.md`. The
+   Dockerfile and CI moved to slice 3 and are not built.
 6. **Python and SDK:** Python 3.12 (`.python-version`, `requires-python >=3.12`). The SDK
    is pinned exactly to `mcp==2.3.0` and locked in `uv.lock`.
 7. **Build and review:** the code was written by a coding agent (Claude) from `DESIGN.md`.
    A model from another vendor (GPT) reviewed it and required five changes (R1 to R5 below),
-   then approved the fixes.
+   then approved the fixes. Slice 2 was designed by Claude Opus (`OBO.md`) and built by
+   Claude Opus (`claude-opus-5-5`) with tests written first; its cross-vendor review is
+   pending.
 
 ## Where the build differs from DESIGN.md (smallest fixes)
 
@@ -55,3 +58,33 @@
 - **Leak test checked by mutation:** adding a `log.debug("got token %s ...")` line to
   `TokenManager` makes `test_full_token_flow_leaves_no_secret_in_logs_or_results` fail.
   The change was reverted.
+
+## Slice 2: where the build differs from OBO.md (smallest fixes)
+
+| # | OBO.md said | Build does | Why |
+|---|---|---|---|
+| S1 | "The client signs in with PKCE … posting Keycloak's login form with httpx (checked in the spike)" | Keycloak 26.8.2 marks its login-session cookies `Secure` even on `http://localhost`. httpx (like Python's cookiejar) does not send `Secure` cookies over plain HTTP, so the login POST got HTTP 400. `demo/obo_demo.py` copies the cookies from the login page into a `Cookie` header by hand. | The spike used curl, which treats localhost as a secure context |
+| S2 | "No client sends `Mcp-Name`: tool error naming the scope" | A request that sends `Mcp-Method` without `Mcp-Name` is refused by the SDK (400, `-32020`). The tool-level scope check is reached by clients that send neither header (older protocol versions); a test covers that case. | SDK 2.3.0 behaviour |
+| S3 | `ToolScopeGate` "inside the SDK's auth middleware" | It is appended to `user_middleware`: inside `AuthenticationMiddleware` (the user is known) but outside the route's `RequireAuthMiddleware`. So a logbook call whose token lacks both scopes gets the per-tool 403 naming both, not the SDK's 403 for `mcp:tools`. A test pins the order. | Where Starlette puts app middleware |
+| S4 | Unknown `kid`: "one rate-limited refetch" | At most one JWKS fetch per 60 s; an unknown `kid` within 60 s of the last fetch is rejected without a fetch. A JWKS that cannot be fetched gives 401, never a 500. | Rate limit made concrete |
+| S5 | Exchanged token expiry `min(X.exp, A.exp) − 30 s` | X's expiry is taken from the token response's `expires_in` (default 60 s if absent); X is treated as opaque and not decoded. | The server is only a client of X |
+| S6 | Tool annotations `readOnlyHint: true` | The two `my_*` tools also set `openWorldHint: false` (one known API, the user's own data). | They do not reach the open world |
+| S7 | HTTP flags `--issuer`, `--resource-url`, `--logbook-url` | Also `--port` (default 8000) and `--client-credentials-file` (default `~/.config/aviation-mcp/oauth-client.env`, keys `AVIATION_MCP_CLIENT_ID`/`AVIATION_MCP_CLIENT_SECRET`, id defaults to `aviation-mcp`). There is no `--host`: HTTP binds 127.0.0.1 only. `--logbook-url` without a secret stops start-up. | Needed to run it; host fixed by design §1 |
+| S8 | `DESIGN.md` §2: `--transport streamable-http` | `--transport http`. | Shorter; DESIGN.md updated |
+| S9 | Logbook rows | Rows that fail the result schema (ICAO pattern, label length, numbers) are dropped instead of failing the call or reaching the model. | Labels are user data |
+| S10 | Realm from the spike | `aviation-demo-cli` and `other-app` have direct grants off, as the design table says (the spike realm had them on). The realm's display name and attributes say "DEMO ONLY". | Matches OBO.md §6 |
+| S11 | `make demo-obo` checks (0)–(6) | Adds (7): the server and API logs from the run are searched for the inbound tokens, their signatures and the client secret. Refusal checks (0, 3, 4) use raw HTTP POSTs to show the status and `WWW-Authenticate`; the data checks (1, 2, 5) go through the SDK client. | Evidence for acceptance item 3 on a real run |
+| S12 | Per-key exchange locks | The lock for a key is dropped when its entry leaves the LRU, not when it expires. At worst a dropped lock lets two concurrent calls for one user make two exchanges; it never mixes users. | Simplicity |
+
+## Slice 2: found while testing
+
+- **Leak test checked by mutation:** `tests/test_no_token_in_logs_http.py` runs with the
+  redaction safety net off. Adding `log.debug("got %s", token)` to `TokenExchanger`, or a
+  log line with the raw `sub` to `LogbookClient`, makes it fail ("exchanged 0 leaked into
+  logs", "sub A leaked into logs"). Both changes were reverted.
+- **pytest-asyncio and the ASGI lifespan:** entering the app's lifespan in an async fixture
+  and leaving it in teardown fails, because anyio cancel scopes must exit in the task that
+  entered them. The tests run the lifespan in one dedicated task (`tests/test_http_app.py`,
+  `running`).
+- **`make live-metar` once timed out** (`ConnectTimeout` to aviationweather.gov) while
+  curl reached it; the rerun passed. Network flake, no code change.

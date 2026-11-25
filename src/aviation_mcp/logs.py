@@ -7,9 +7,12 @@ tracebacks and extra fields, passes through `redact()` before it is written.
 
 from __future__ import annotations
 
+import hashlib
+import hmac
 import json
 import logging
 import re
+import secrets
 import sys
 import time
 from datetime import UTC, datetime
@@ -24,12 +27,23 @@ _PATTERNS = [
     re.compile(r"(?i)(authorization['\"]?\s*[:=]\s*['\"]?)[^'\",}\s][^'\",}]*"),
     # access_token / client_secret / refresh_token in JSON, form or kwargs style
     re.compile(
-        r"(?i)((?:access_token|refresh_token|id_token|client_secret)['\"]?\s*[:=]\s*['\"]?)"
+        r"(?i)((?:access_token|refresh_token|id_token|subject_token|client_secret)['\"]?\s*[:=]\s*['\"]?)"
         r"[^'\"&,}\s]+"
     ),
     # a bare bearer token anywhere
     re.compile(r"(?i)(bearer\s+)[A-Za-z0-9\-._~+/]+=*"),
+    # any three-part JWT (header.payload.signature), wherever it appears
+    re.compile(r"()eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+"),
 ]
+
+# Per-process key: pseudonyms cannot be joined to an IdP user id or across restarts.
+_PSEUDONYM_KEY = secrets.token_bytes(32)
+
+
+def subject_pseudonym(issuer: str, subject: str) -> str:
+    """A log-safe stand-in for a user: "p_" + HMAC-SHA256(process key, iss|sub)[:12]."""
+    mac = hmac.new(_PSEUDONYM_KEY, f"{issuer}|{subject}".encode(), hashlib.sha256)
+    return "p_" + mac.hexdigest()[:12]
 
 _secrets: set[str] = set()
 

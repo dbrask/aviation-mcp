@@ -1,0 +1,229 @@
+{
+  "realm": "aviation-demo",
+  "enabled": true,
+  "sslRequired": "none",
+  "accessTokenLifespan": 300,
+  "clientScopes": [
+    {
+      "name": "basic",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "false",
+        "display.on.consent.screen": "false"
+      },
+      "protocolMappers": [
+        {
+          "name": "sub",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-sub-mapper",
+          "config": {
+            "access.token.claim": "true",
+            "introspection.token.claim": "true"
+          }
+        }
+      ]
+    },
+    {
+      "name": "mcp:tools",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "true"
+      },
+      "protocolMappers": [
+        {
+          "name": "aud-mcp-url",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.custom.audience": "http://localhost:8000/mcp",
+            "access.token.claim": "true",
+            "id.token.claim": "false"
+          }
+        },
+        {
+          "name": "aud-mcp-client",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.client.audience": "aviation-mcp",
+            "access.token.claim": "true",
+            "id.token.claim": "false"
+          }
+        }
+      ]
+    },
+    {
+      "name": "mcp:logbook",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "true"
+      },
+      "protocolMappers": [
+        {
+          "name": "aud-mcp-url",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.custom.audience": "http://localhost:8000/mcp",
+            "access.token.claim": "true",
+            "id.token.claim": "false"
+          }
+        },
+        {
+          "name": "aud-mcp-client",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.client.audience": "aviation-mcp",
+            "access.token.claim": "true",
+            "id.token.claim": "false"
+          }
+        }
+      ]
+    },
+    {
+      "name": "logbook:read",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "false"
+      },
+      "protocolMappers": [
+        {
+          "name": "aud-logbook-api",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.client.audience": "logbook-api",
+            "access.token.claim": "true",
+            "id.token.claim": "false"
+          }
+        }
+      ]
+    }
+  ],
+  "clients": [
+    {
+      "clientId": "aviation-demo-cli",
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "redirectUris": [
+        "http://127.0.0.1:8765/callback"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256"
+      },
+      "fullScopeAllowed": false,
+      "defaultClientScopes": [
+        "basic"
+      ],
+      "optionalClientScopes": [
+        "mcp:tools",
+        "mcp:logbook"
+      ],
+      "description": "DEMO ONLY"
+    },
+    {
+      "clientId": "aviation-mcp",
+      "publicClient": false,
+      "secret": "DEMO-ONLY-aviation-mcp-not-a-secret",
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "fullScopeAllowed": false,
+      "attributes": {
+        "standard.token.exchange.enabled": "true"
+      },
+      "defaultClientScopes": [
+        "basic"
+      ],
+      "optionalClientScopes": [
+        "logbook:read"
+      ],
+      "description": "DEMO ONLY"
+    },
+    {
+      "clientId": "logbook-api",
+      "publicClient": false,
+      "secret": "DEMO-ONLY-logbook-api-unused",
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "defaultClientScopes": [],
+      "optionalClientScopes": [],
+      "description": "DEMO ONLY"
+    },
+    {
+      "clientId": "other-app",
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "redirectUris": [
+        "http://127.0.0.1:8766/callback"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256"
+      },
+      "fullScopeAllowed": false,
+      "defaultClientScopes": [
+        "basic"
+      ],
+      "optionalClientScopes": [],
+      "protocolMappers": [
+        {
+          "name": "aud-self",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.client.audience": "other-app",
+            "access.token.claim": "true",
+            "id.token.claim": "false"
+          }
+        }
+      ],
+      "description": "DEMO ONLY"
+    }
+  ],
+  "users": [
+    {
+      "id": "0b7f6a1e-0000-4000-8000-00000000000a",
+      "username": "pilot-a",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "pilot-a@example.invalid",
+      "firstName": "Pilot",
+      "lastName": "A",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "DEMO-ONLY-pilot-a",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "id": "0b7f6a1e-0000-4000-8000-00000000000b",
+      "username": "pilot-b",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "pilot-b@example.invalid",
+      "firstName": "Pilot",
+      "lastName": "B",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "DEMO-ONLY-pilot-b",
+          "temporary": false
+        }
+      ]
+    }
+  ],
+  "displayName": "aviation-mcp demo realm (DEMO ONLY: throwaway users, passwords and client secrets)",
+  "attributes": {
+    "demoOnly": "true",
+    "note": "All passwords and secrets in this file are throwaway demo values prefixed DEMO-ONLY-. Never reuse them."
+  }
+}
