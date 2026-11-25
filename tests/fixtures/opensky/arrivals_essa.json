@@ -1,0 +1,5 @@
+[
+  {"icao24": "f0f011", "firstSeen": 1795510000, "estDepartureAirport": "EKCH", "lastSeen": 1795514400, "estArrivalAirport": "ESSA", "callsign": "TEST11  ", "estDepartureAirportHorizDistance": 1200, "estDepartureAirportVertDistance": 50, "estArrivalAirportHorizDistance": 900, "estArrivalAirportVertDistance": 20, "departureAirportCandidatesCount": 1, "arrivalAirportCandidatesCount": 1},
+  {"icao24": "f0f012", "firstSeen": 1795490000, "estDepartureAirport": "ENGM", "lastSeen": 1795493000, "estArrivalAirport": "ESSA", "callsign": "TEST12  ", "estDepartureAirportHorizDistance": 1500, "estDepartureAirportVertDistance": 60, "estArrivalAirportHorizDistance": 700, "estArrivalAirportVertDistance": 15, "departureAirportCandidatesCount": 1, "arrivalAirportCandidatesCount": 1},
+  {"icao24": "f0f013", "firstSeen": 1795500000, "estDepartureAirport": null, "lastSeen": 1795503600, "estArrivalAirport": "ESSA", "callsign": null, "estDepartureAirportHorizDistance": null, "estDepartureAirportVertDistance": null, "estArrivalAirportHorizDistance": 1100, "estArrivalAirportVertDistance": 30, "departureAirportCandidatesCount": 0, "arrivalAirportCandidatesCount": 1}
+]

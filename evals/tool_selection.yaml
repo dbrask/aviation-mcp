@@ -1,0 +1,71 @@
+# Tool-selection eval seed (from docs/PLAN.md). Slice 1 only checks that every expected
+# call is a valid call against the current tool schemas (tests/test_eval_file.py).
+# Running these prompts against a live model and scoring the chosen tool is a later step.
+#
+# `expect` lists acceptable outcomes; any one of them counts as correct.
+# Values in <angle brackets> depend on the day the eval runs and are not schema-checked.
+
+version: 1
+cases:
+  - id: 1
+    prompt: "What's the weather at Arlanda right now?"
+    expect:
+      - tool: get_metar
+        args: {stations: [ESSA]}
+
+  - id: 2
+    prompt: "Will it snow at Kiruna tomorrow morning?"
+    expect:
+      - tool: get_taf
+        args: {stations: [ESNQ]}
+
+  - id: 3
+    prompt: "Compare current conditions at Heathrow and Schiphol"
+    expect:
+      - tool: get_metar
+        args: {stations: [EGLL, EHAM]}
+
+  - id: 4
+    prompt: "Has Landvetter's wind been gusting over the last few hours?"
+    expect:
+      - tool: get_metar
+        args: {stations: [ESGG], hours_back: 6}
+
+  - id: 5
+    prompt: "What planes are flying near Bromma?"
+    expect:
+      - tool: aircraft_near_airport
+        args: {airport: ESSB}
+
+  - id: 6
+    prompt: "Any aircraft within 100 km of Frankfurt?"
+    expect:
+      - tool: aircraft_near_airport
+        args: {airport: EDDF, radius_km: 100}
+
+  - id: 7
+    prompt: "Where is aircraft 4ca7b5 now?"
+    expect:
+      - tool: get_aircraft
+        args: {icao24: [4ca7b5]}
+
+  - id: 8
+    prompt: "Which flights arrived at Arlanda yesterday evening?"
+    expect:
+      - tool: airport_flights
+        args: {airport: ESSA, direction: arrivals, hour_from: 17, hour_to: 24}
+
+  - id: 9
+    prompt: "How many departures did Copenhagen have last Monday?"
+    expect:
+      - tool: airport_flights
+        args: {airport: EKCH, direction: departures, date_utc: "<that Monday, YYYY-MM-DD>"}
+
+  - id: 10
+    prompt: "What departed from Arlanda in the last hour?"
+    # The model should say OpenSky only has yesterday and earlier.
+    expect:
+      - no_call: true
+      - tool: airport_flights
+        args: {airport: ESSA, direction: departures, date_utc: "<today>"}
+        expect_error: "not available"

@@ -1,0 +1,10 @@
+{
+  "time": 1795600000,
+  "states": [
+    ["f0f003", "TEST3   ", "Sweden", 1795599998, 1795599999, 18.60, 59.90, 3200.0, false, 180.5, 75.0, 8.1, null, 3300.0, "1000", false, 0, 0],
+    ["f0f001", "TEST1   ", "Sweden", 1795599999, 1795599999, 17.93, 59.67, 450.0, false, 75.2, 10.0, -3.5, null, 480.0, "1001", false, 0, 0],
+    ["f0f002", null,       "Norway", 1795599990, 1795599995, 17.91, 59.65, null, true, 8.0, 190.0, null, null, null, null, false, 0, 0],
+    ["f0f004", "TEST4   ", "Finland", null, 1795599950, null, null, null, false, null, null, null, null, null, null, false, 0, 0],
+    ["f0f005", "TEST5   ", "Denmark", 1795599999, 1795599999, 18.80, 60.20, 10500.0, false, 230.0, 45.0, 0.0, null, 10700.0, "2000", false, 0, 0]
+  ]
+}

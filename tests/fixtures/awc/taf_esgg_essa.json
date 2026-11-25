@@ -1,0 +1,173 @@
+[
+  {
+    "icaoId": "ESSA",
+    "dbPopTime": "2026-11-25T11:32:07.110Z",
+    "bulletinTime": "2026-11-25T11:00:00.000Z",
+    "issueTime": "2026-11-25T11:30:00.000Z",
+    "validTimeFrom": 1795608000,
+    "validTimeTo": 1795694400,
+    "rawTAF": "TAF ESSA 251130Z 2512/2612 35009KT 9999 BKN020 PROB40 2514/2519 4000 -SN BKN008 PROB40 2604/2612 BKN008",
+    "mostRecent": 1,
+    "remarks": "",
+    "lat": 59.664,
+    "lon": 17.92,
+    "elev": 36,
+    "prior": 0,
+    "name": "Stockholm/Arlanda Arpt",
+    "fcsts": [
+      {
+        "timeFrom": 1795608000,
+        "timeTo": 1795694400,
+        "timeBec": null,
+        "fcstChange": null,
+        "probability": null,
+        "wdir": 350,
+        "wspd": 9,
+        "wgst": null,
+        "wshearHgt": null,
+        "wshearDir": null,
+        "wshearSpd": null,
+        "visib": "6+",
+        "altim": null,
+        "vertVis": null,
+        "wxString": null,
+        "notDecoded": null,
+        "clouds": [
+          {
+            "cover": "BKN",
+            "base": 2000,
+            "type": null
+          }
+        ],
+        "icgTurb": [],
+        "temp": []
+      },
+      {
+        "timeFrom": 1795615200,
+        "timeTo": 1795633200,
+        "timeBec": null,
+        "fcstChange": "PROB",
+        "probability": 40,
+        "wdir": null,
+        "wspd": null,
+        "wgst": null,
+        "wshearHgt": null,
+        "wshearDir": null,
+        "wshearSpd": null,
+        "visib": 2.49,
+        "altim": null,
+        "vertVis": null,
+        "wxString": "-SN",
+        "notDecoded": null,
+        "clouds": [
+          {
+            "cover": "BKN",
+            "base": 800,
+            "type": null
+          }
+        ],
+        "icgTurb": [],
+        "temp": []
+      },
+      {
+        "timeFrom": 1795665600,
+        "timeTo": 1795694400,
+        "timeBec": null,
+        "fcstChange": "PROB",
+        "probability": 40,
+        "wdir": null,
+        "wspd": null,
+        "wgst": null,
+        "wshearHgt": null,
+        "wshearDir": null,
+        "wshearSpd": null,
+        "visib": "",
+        "altim": null,
+        "vertVis": null,
+        "wxString": null,
+        "notDecoded": null,
+        "clouds": [
+          {
+            "cover": "BKN",
+            "base": 800,
+            "type": null
+          }
+        ],
+        "icgTurb": [],
+        "temp": []
+      }
+    ]
+  },
+  {
+    "icaoId": "ESGG",
+    "dbPopTime": "2026-11-25T11:32:07.000Z",
+    "bulletinTime": "2026-11-25T11:00:00.000Z",
+    "issueTime": "2026-11-25T11:30:00.000Z",
+    "validTimeFrom": 1795608000,
+    "validTimeTo": 1795694400,
+    "rawTAF": "TAF ESGG 251130Z 2512/2612 02008KT 9999 SCT015 PROB40 2512/2518 BKN012",
+    "mostRecent": 1,
+    "remarks": "",
+    "lat": 57.667,
+    "lon": 12.285,
+    "elev": 152,
+    "prior": 2,
+    "name": "Göteborg/Landvetter Arpt",
+    "fcsts": [
+      {
+        "timeFrom": 1795608000,
+        "timeTo": 1795694400,
+        "timeBec": null,
+        "fcstChange": null,
+        "probability": null,
+        "wdir": 20,
+        "wspd": 8,
+        "wgst": null,
+        "wshearHgt": null,
+        "wshearDir": null,
+        "wshearSpd": null,
+        "visib": "6+",
+        "altim": null,
+        "vertVis": null,
+        "wxString": null,
+        "notDecoded": null,
+        "clouds": [
+          {
+            "cover": "SCT",
+            "base": 1500,
+            "type": null
+          }
+        ],
+        "icgTurb": [],
+        "temp": []
+      },
+      {
+        "timeFrom": 1795608000,
+        "timeTo": 1795629600,
+        "timeBec": null,
+        "fcstChange": "PROB",
+        "probability": 40,
+        "wdir": null,
+        "wspd": null,
+        "wgst": null,
+        "wshearHgt": null,
+        "wshearDir": null,
+        "wshearSpd": null,
+        "visib": "",
+        "altim": null,
+        "vertVis": null,
+        "wxString": null,
+        "notDecoded": null,
+        "clouds": [
+          {
+            "cover": "BKN",
+            "base": 1200,
+            "type": null
+          }
+        ],
+        "icgTurb": [],
+        "temp": []
+      }
+    ]
+  }
+]
